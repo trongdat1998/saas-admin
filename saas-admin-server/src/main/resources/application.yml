@@ -1,0 +1,134 @@
+server:
+  port: 7501
+  use-forward-headers: true
+  tomcat:
+      remote-ip-header: X-Real-IP
+      protocol-header: X-Forwarded-Proto
+      uri-encoding: UTF-8
+      max-threads: 500
+      accesslog:
+        enabled: true
+        directory: ./logs/
+        pattern: "%h %{X-Forwarded-For}i %t '%r' %s %b %D '%{Referer}i' '%{User-Agent}i'"
+      basedir: ./
+grpc:
+  port: 7401
+  server-worker-count: 200
+
+
+spring:
+  application:
+    name: saas-admin-server
+  datasource:
+    type: io.bhex.base.mysql.BHMysqlDataSource
+    url: jdbc:mysql://broker-server-db:3306/bhop_saas?useUnicode=true&characterEncoding=utf8&allowMultiQueries=true&autoReconnect=true&failOverReadOnly=false&useSSL=false&
+    username: broker-server-write
+    password: xxxxxx
+    driver-class-name: com.mysql.jdbc.Driver
+  redis:
+    lettuce:
+      pool:
+        max-active: 200
+        max-idle: 50
+        max-wait: 4s
+    timeout: 10s
+    cluster:
+      nodes:
+        - saas-admin-redis:6379
+
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
+saas:
+  admin:
+    url: "https://saas.headsc.dev/"
+saas-admin-server:
+  server-host: saas-admin-server
+  server-port: 7501
+
+grpc-client:
+  stub-deadline: 8000
+  channel-info:
+    - channel-name: 'adminCommonGrpcChannel'
+      host: 'localhost'
+      port: 7401
+      use-ssl: false
+    - channel-name: 'bhChannel'
+      host: 'bh-server.bluehelix'
+      port: 7011
+      use-ssl: false
+    - channel-name: 'saasAdminGrpcChannel'
+      host: 'localhost'
+      port: 7401
+      use-ssl: false
+    - channelName: 'exAdminGrpcChannel'
+      host: 'ex-admin-grpc.exchange'
+      port: 7402
+      useSsl: false
+    - channel-name: 'commonServerChannel'
+      host: 'common-server.broker'
+      port: 7220
+      use-ssl: false
+    - channel-name: 'quoteChannel'
+      host: 'quote-data-service.exchange'
+      port: 7063
+      use-ssl: false
+    - channel-name: 'quoteDataChannel'
+      host: 'quote-data-service.exchange'
+      port: 7063
+      use-ssl: false
+    - channel-name: 'marginServerChannel'
+      host: 'margin-server.bluehelix'
+      port: 7232
+      use-ssl: false
+
+awsstorage:
+  aws:
+    bucket: private.headsc.dev
+    access-key: XXX
+    secret-key: XXX
+    region-name: ap-southeast-1
+  access-os-file-key: XXX
+  public:
+    static-url: https://static.headsc.dev/
+    prefix: token/
+    aws:
+      bucket: static.headsc.dev
+      access-key: XXX
+      secret-key: XXX
+      region-name: ap-southeast-1
+
+re-captcha-supplier: google  #google or gee or geeV3 or none
+re-captcha-secret-key: XXX  #google secret
+gee-test-config:
+  gee-test:
+    configs:
+      - id: XXX
+        private-key: XXX
+    gee-test-url: https://dkapi.geetest.com/deepknow/v2/verify
+
+
+snowflake:
+  datacenterId: 1
+  workerId: 1
+
+
+authorize:
+  referer:
+    check: false
+    domain: "http://card.headsc.dev/"
+  newversion: true
+  ignore:
+    resource: "/api/v1/broker/query_simple_brokers,/api/v1/exchange/query_simple_exchanges,/api/v1/user,/api/v1/instance,/internal/health,/api/v1/country/list,/api/v1/platform_account,/api/v1/role_auth/user/auth_path/list,/api/v1/helper/"
+    garesource: "/api/v1/security"
+  gaenable: true
+  token:
+    jwt:
+      secret: XXX
+      expire_in_seconds: 14400
+  cookie:
+    domain: "headsc.dev"
+    secure: false
+
+verify-captcha: true  #当不校验时，验证码实际不发送且无发送纪录，且默认123456有效
+global-notify-type: 3  #全局强制通知类型 1：all, 2：仅手机, 3：仅邮箱
